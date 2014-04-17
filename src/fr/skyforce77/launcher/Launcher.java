@@ -2,19 +2,20 @@ package fr.skyforce77.launcher;
 
 import java.beans.IntrospectionException;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import fr.skyforce77.launcher.Download.updateThread;
 
-@SuppressWarnings("unused")
 public class Launcher extends JFrame{
 	
 	private static final long serialVersionUID = 3706406341754400586L;
@@ -25,19 +26,10 @@ public class Launcher extends JFrame{
 
 	public static void main(String[] args) {
 		instance = new Launcher();
+		getLauncher().getParentFile().mkdirs();
 		getActualVersion();
 		if(!getLauncher().exists()) {
-			Download.update("Telechargement du launcher", "veuillez patienter", new updateThread(){
-				@Override
-				public void onUpdated(boolean success) {
-					if(success) {
-						JOptionPane.showMessageDialog(instance, "Telechargement du jeu effectue, vous devez maintenant relancer le jeu","Information",JOptionPane.INFORMATION_MESSAGE);
-						System.exit(1);
-					} else {
-						JOptionPane.showMessageDialog(instance, "Le telechargement a echoue\ncela peut etre causee par une mise a jour du launcher requise.","Information",JOptionPane.ERROR_MESSAGE);
-					}
-				}
-			});
+			update();
 		} else {
 			try {
 				addURLToSystemClassLoader(getLauncher().toURI().toURL());
@@ -45,7 +37,7 @@ public class Launcher extends JFrame{
 				Field fi = cls.getDeclaredField("version");
 				String version = (Integer)fi.get(null)+"";
 				if(!actual.startsWith(version)) {
-					Download.update("Mise a du launcher", "veuillez patienter", new updateThread(){
+					Download.update(downloadlink, Launcher.getLauncher(), "Mise a du launcher", "veuillez patienter", new updateThread(){
 						@Override
 						public void onUpdated(boolean success) {
 							if(success) {
@@ -60,8 +52,36 @@ public class Launcher extends JFrame{
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
+				update();
 			}
 		}
+		System.exit(1);
+	}
+	
+	public static void update() {
+		Download.update(downloadlink, Launcher.getLauncher(), "Telechargement du launcher", "veuillez patienter", new updateThread(){
+			@Override
+			public void onUpdated(boolean success) {
+				if(success) {
+					Download.update("http://dl.dropboxusercontent.com/u/38885163/TowerMiner/version/TowerMiner.jar", getGame(), "Telechargement du jeu", "veuillez patienter", new updateThread(){
+						@Override
+						public void onUpdated(boolean success) {
+							if(success) {
+								setVersion(getGameVersion());
+								JOptionPane.showMessageDialog(instance, "Telechargement du launcher effectue, vous devez maintenant relancer l'executable","Information",JOptionPane.INFORMATION_MESSAGE);
+								System.exit(1);
+							} else {
+								JOptionPane.showMessageDialog(instance, "Le telechargement a echoue\ncela peut etre causee par une mise a jour du launcher requise.","Information",JOptionPane.ERROR_MESSAGE);
+							}
+						}
+					});
+					JOptionPane.showMessageDialog(instance, "Telechargement du launcher effectue, vous devez maintenant relancer l'executable","Information",JOptionPane.INFORMATION_MESSAGE);
+					System.exit(1);
+				} else {
+					JOptionPane.showMessageDialog(instance, "Le telechargement a echoue\ncela peut etre causee par une mise a jour du launcher requise.","Information",JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
 	}
 	
 	public static void launch() {
@@ -101,6 +121,34 @@ public class Launcher extends JFrame{
 	
 	public static File getLauncher() {
 		return new File(getDirectory(), "/launcher/TMLauncher.jar");
+	}
+	
+	public static File getGame() {
+		return new File(getDirectory(), "/launcher/TowerMiner.jar");
+	}
+	
+	public static File getFileVersion() {
+		return new File(getDirectory(), "/launcher/version.txt");
+	}
+	
+	public static void setVersion(String version) {
+		try {
+			FileWriter fstream = new FileWriter(getFileVersion());
+			BufferedWriter out = new BufferedWriter(fstream);
+			out.write(version);
+			out.close();
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+	}
+	
+	public static String getGameVersion() {
+		try {
+			BufferedReader out = new BufferedReader(new InputStreamReader(new URL("http://dl.dropboxusercontent.com/u/38885163/TowerMiner/version/version.txt").openStream()));
+			return out.readLine();
+		}catch (Exception e){
+			return "";
+		}
 	}
 	
 	public static File getDirectory() {

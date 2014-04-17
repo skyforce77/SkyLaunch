@@ -14,13 +14,13 @@ import javax.swing.ProgressMonitor;
 
 public class Download{
 
-	public static void update(String cause, String add, updateThread torun) {
+	public static void update(String surl, File file, String cause, String add, updateThread torun) {
 		int count;
 		boolean cancel = false;
 		ProgressMonitor monitor = new ProgressMonitor(Launcher.instance, cause, add, 0, 100);
 		File temp = new File(Launcher.getLauncher().toString().replace(".jar","-temp.jar"));
 		try {
-			URL url = new URL(Launcher.downloadlink);
+			URL url = new URL(surl);
 			URLConnection conection = url.openConnection();
 			conection.connect();
 			int lenghtOfFile = conection.getContentLength();
@@ -52,7 +52,7 @@ public class Download{
 			temp.delete();
 			torun.onUpdated(false);
 		} else {
-			move(temp,Launcher.getLauncher());
+			move(temp,file);
 			temp.delete();
 			torun.onUpdated(true);
 		}
