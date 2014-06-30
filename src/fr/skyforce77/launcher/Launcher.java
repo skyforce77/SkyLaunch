@@ -21,13 +21,16 @@ public class Launcher extends JFrame{
 	private static final long serialVersionUID = 3706406341754400586L;
 	public static String actual;
 	public static String downloadlink;
-	public static String versionurl = "http://dl.dropboxusercontent.com/u/38885163/TowerMiner/launcher/version.txt";
+	public static String versionurl = "https://dl.dropboxusercontent.com/u/38885163/TowerMiner/launcher/version.txt";
 	public static Launcher instance;
 
 	public static void main(String[] args) {
 		instance = new Launcher();
 		getLauncher().getParentFile().mkdirs();
-		getActualVersion();
+		if(!getActualVersion()) {
+			JOptionPane.showMessageDialog(instance, "Impossible de se connecter\nCe jeu necessite une connection internet","Information",JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 		if(!getLauncher().exists()) {
 			update();
 		} else {
@@ -55,7 +58,7 @@ public class Launcher extends JFrame{
 				update();
 			}
 		}
-		System.exit(1);
+		//System.exit(1);
 	}
 	
 	public static void update() {
@@ -63,7 +66,7 @@ public class Launcher extends JFrame{
 			@Override
 			public void onUpdated(boolean success) {
 				if(success) {
-					Download.update("http://dl.dropboxusercontent.com/u/38885163/TowerMiner/version/TowerMiner.jar", getGame(), "Telechargement du jeu", "veuillez patienter", new updateThread(){
+					Download.update("https://dl.dropboxusercontent.com/u/38885163/TowerMiner/version/TowerMiner.jar", getGame(), "Telechargement du jeu", "veuillez patienter", new updateThread(){
 						@Override
 						public void onUpdated(boolean success) {
 							if(success) {
@@ -144,7 +147,7 @@ public class Launcher extends JFrame{
 	
 	public static String getGameVersion() {
 		try {
-			BufferedReader out = new BufferedReader(new InputStreamReader(new URL("http://dl.dropboxusercontent.com/u/38885163/TowerMiner/version/version.txt").openStream()));
+			BufferedReader out = new BufferedReader(new InputStreamReader(new URL("https://dl.dropboxusercontent.com/u/38885163/TowerMiner/version/version.txt").openStream()));
 			return out.readLine();
 		}catch (Exception e){
 			return "";
