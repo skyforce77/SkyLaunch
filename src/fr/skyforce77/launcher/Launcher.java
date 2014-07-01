@@ -28,7 +28,17 @@ public class Launcher extends JFrame{
 		instance = new Launcher();
 		getLauncher().getParentFile().mkdirs();
 		if(!getActualVersion()) {
-			JOptionPane.showMessageDialog(instance, "Impossible de se connecter\nCe jeu necessite une connection internet","Information",JOptionPane.ERROR_MESSAGE);
+			if(!getLauncher().exists()) {
+				JOptionPane.showMessageDialog(instance, "Impossible de se connecter\nCe jeu necessite une connection internet","Information",JOptionPane.ERROR_MESSAGE);
+			} else {
+				try {
+					addURLToSystemClassLoader(getLauncher().toURI().toURL());
+					launch();
+				} catch (Exception e) {	
+					e.printStackTrace();
+					JOptionPane.showMessageDialog(instance, "Une erreur  s'est produite\nLe jeu ne peut pas être lance.","Information",JOptionPane.ERROR_MESSAGE);
+				}
+			}
 			return;
 		}
 		if(!getLauncher().exists()) {
